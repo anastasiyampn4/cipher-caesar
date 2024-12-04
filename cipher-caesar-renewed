@@ -1,0 +1,90 @@
+import re
+
+whats_direction = input('Что мы должны сделать: шифровать, дешифровать или взломать? \n').lower()
+
+while whats_direction not in ['шифровать', 'дешифровать', 'взломать']:
+    whats_direction = input('Что-то не то ты ввёл. Напиши "шифровать", "дешифровать" или "взломать". \n').lower()
+
+whats_language = input('Какой нужен язык: русский или английский? \n').lower()
+
+while whats_language not in ['русский', 'английский']:
+    whats_language = input('Что-то не то ты ввёл. Напиши "русский" или "английский". \n').lower()
+
+
+step = 0
+if whats_direction != 'взломать':
+    try:
+        whats_step = input('На сколько символов мы сдвигаем буквы по алфавиту? Ответ напиши числом. \n')
+        step = int(whats_step)
+    except ValueError:
+        print("Некорректный ввод. Шаг сдвига должен быть целым числом.")
+        exit()
+
+whats_text = input('Какой текст нужно использовать сейчас? \n')
+while whats_text.isspace():
+    whats_text = input('Что-то не то ты ввёл. Введи текст. \n')
+
+# Проверка на наличие только букв русского алфавита (для режима взлома)
+if whats_direction == 'взломать' and whats_language == 'русский':
+    filtered_text = re.sub(r"[^А-Яа-я\s]", "", whats_text) # Удаляем неподходящие символы
+    if not filtered_text: # Проверяем, не пустая ли строка после фильтрации
+        print("Текст не содержит букв русского алфавита. Взлом невозможен.")
+        exit()
+    whats_text = filtered_text # Заменяем whats_text на отфильтрованный текст
+
+
+
+def caesar(direction, language, step, text):
+    upper_eng_alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    lower_eng_alphabet = 'abcdefghijklmnopqrstuvwxyz'
+    upper_rus_alphabet = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
+    lower_rus_alphabet = 'абвгдежзийклмнопрстуфхцчшщъыьэюя'
+
+    if language == 'русский':
+        alphas = 32
+        low_alphabet = lower_rus_alphabet
+        upp_alphabet = upper_rus_alphabet
+    else:
+        alphas = 26
+        low_alphabet = lower_eng_alphabet
+        upp_alphabet = upper_eng_alphabet
+
+    if direction == 'взломать':
+        for shift in range(alphas):
+            decrypted_text = ""
+            for char in text:
+                if char.isalpha():
+                    if char.islower():
+                        index = (low_alphabet.index(char) - shift) % alphas
+                        decrypted_text += low_alphabet[index]
+                    else:
+                        index = (upp_alphabet.index(char) - shift) % alphas
+                        decrypted_text += upp_alphabet[index]
+                else:
+                    decrypted_text += char
+            print(f"Попытка {shift + 1}: {decrypted_text}")
+        return
+
+    # Шифрование и дешифрование
+    for i in range(len(text)):
+        if text[i].isalpha():
+            if text[i].islower():
+                place = low_alphabet.index(text[i])
+            else:
+                place = upp_alphabet.index(text[i])
+
+            if direction == 'дешифровать':
+                index = (place - step) % alphas
+            elif direction == 'шифровать':
+                index = (place + step) % alphas
+            if text[i].islower():
+                print(low_alphabet[index], end='')
+            else:
+                print(upp_alphabet[index], end='')
+        else:
+            print(text[i], end='')
+    print()
+
+
+# Вызов функции
+caesar(whats_direction, whats_language, step, whats_text)
